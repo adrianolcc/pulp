@@ -1,0 +1,7 @@
+# Store and check out text files with LF endings, even from a Windows editor:
+# shell scripts and container entrypoints fail with CRLF.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.stl binary
+*.dae binary

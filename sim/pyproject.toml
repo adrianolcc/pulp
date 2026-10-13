@@ -1,0 +1,12 @@
+[project]
+name = "pulp-sim"
+version = "0.0.0"
+description = "Process models and one OPC UA server per station."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12,<3.13"
+dependencies = ["pulp-common"]
+
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"
