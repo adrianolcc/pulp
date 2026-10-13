@@ -1,0 +1,12 @@
+[project]
+name = "pulp-robot-lite"
+version = "0.0.0"
+description = "Python robot stand-in with the same contract as the ROS 2 cell."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12,<3.13"
+dependencies = ["pulp-common"]
+
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"

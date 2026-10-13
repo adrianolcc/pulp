@@ -1,0 +1,87 @@
+# Workspace root. It has no [project] table, so it is a "virtual" root: it is not a
+# package itself, it only ties the member packages together, holds the shared dev
+# tools and the tool configuration, and owns the single uv.lock for the repo.
+
+[tool.uv]
+# CI's setup-uv action reads this too, so the laptop and CI agree on uv's version.
+required-version = ">=0.13,<0.14"
+
+[tool.uv.workspace]
+# Listed explicitly rather than with a glob: robot/ (ROS 2), ui/ (Node) and the
+# data folders are not Python packages and must stay out of the workspace.
+members = [
+    "common",
+    "testkit",
+    "sim",
+    "edge",
+    "historian",
+    "mes_lite",
+    "analytics",
+    "integration",
+    "robot_lite",
+    "onboarding",
+    "ai",
+]
+
+# Sources declared at the root apply to every member: "pulp-common" always
+# resolves to the local common/ package, never to PyPI.
+[tool.uv.sources]
+pulp-common = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4",
+    "pre-commit>=4.7",
+    "pytest>=9.1",
+    "ruff>=0.17",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "I",       # import sorting
+    "N",       # pep8 naming
+    "B",       # bugbear: likely bugs
+    "UP",      # pyupgrade: modern syntax for 3.12
+    "SIM",     # simplifications
+    "DTZ",     # naive datetimes; every ts in PULP must be timezone-aware
+    "PT",      # pytest style
+    "RUF",     # ruff-specific
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pulp_*"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+# importlib mode lets two packages each have tests/test_config.py without a
+# name clash, and stops pytest from putting test folders on sys.path.
+addopts = ["--import-mode=importlib", "--strict-markers", "-ra"]
+testpaths = [
+    "common/tests",
+    "testkit/tests",
+    "sim/tests",
+    "edge/tests",
+    "historian/tests",
+    "mes_lite/tests",
+    "analytics/tests",
+    "integration/tests",
+    "robot_lite/tests",
+    "onboarding/tests",
+    "ai/tests",
+]
+# Test levels from docs/spec.md "Verification". Unmarked tests are unit tests.
+markers = [
+    "contract: checks a message or interface against contracts/",
+    "layer: runs one layer against fakes and recorded traffic (make test-layer)",
+    "storyline: end-to-end storyline run against the assembled stack (make storyline-<letter>)",
+]

@@ -1,0 +1,37 @@
+# Secrets and local configuration: copy .env.example to .env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+build/
+dist/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node (ui/)
+node_modules/
+ui/dist/
+
+# ROS 2 build output (robot/)
+robot/build/
+robot/install/
+robot/log/
+
+# Recorded UNS traffic and run output; fixtures that tests need go under testkit/
+recordings/
+*.jsonl.gz
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
