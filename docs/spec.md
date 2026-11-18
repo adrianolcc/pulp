@@ -5,6 +5,7 @@ Oct 13, 2026 · @Adriano
 ## Changes
 
 - **13 Oct 2026:** project renamed from Brownfield (working name) to **PULP**. Repo `pulp`, folder `~/pulp`, UNS topic root `pulp/`, CLI tools `pulp-record`, `pulp-replay` and `pulp-fault`. Decided: GPU memory (RTX 3050, 6 GB) and the embedding model (`nomic-embed-text`). WP-00 mostly done; setup notes added under WP-00. Ranges corrected to I-01 to I-25 and storylines A to F.
+- **18 Nov 2026:** WP-02 done. Memory measured (runtime environment table; method in `docs/notes/wp-02-memory.md`): the heavy profiles use far less than estimated. Decided in ADR-002: the full ROS 2 robot profile is the default; robot-lite stays for fast tests, development of other layers and the swap check. Historian image is `timescale/timescaledb-ha` (it bundles pgvector); Grafana reads the historian through a read-only role.
 
 ## Purpose
 
@@ -89,17 +90,17 @@ Each slice of this exists somewhere; the combination does not, as far as these s
 
 Everything runs on one Windows 11 laptop with an Intel Core i7 (13th gen), 16 GB of RAM and an RTX 3050 laptop GPU with 6 GB of dedicated memory. Docker Desktop runs every service as a Linux container inside WSL2. The control room, UaExpert and MQTT Explorer run on Windows.
 
-| Component | Runs where | Estimated RAM |
-| --- | --- | --- |
-| Windows, browser, desktop tools | Windows | 5–6 GB |
-| WSL2 memory cap, set in .wslconfig | WSL2 | 10 GB maximum |
-| Odoo 19 + OdooPLM + their PostgreSQL | Container, profile enterprise | About 2 GB |
-| ROS 2 + MoveIt, headless | Container, profile robot | About 1.5 GB |
-| Broker, TimescaleDB, simulators, gateway, services, control room | Containers, profile core | About 1.5 GB |
-| Production agent and tool server | Container, profile ai | Under 0.5 GB; the model runs through the API |
-| Embedding model (`nomic-embed-text`) | Ollama on Windows, RTX 3050 | No system RAM; about 320 MB of GPU memory, measured |
+| Component | Runs where | Estimated RAM | Measured in WP-02 |
+| --- | --- | --- | --- |
+| Windows, browser, desktop tools | Windows | 5–6 GB | Not measured |
+| WSL2 memory cap, set in .wslconfig | WSL2 | 10 GB maximum | 2.0 GB used with core infrastructure, enterprise and robot all running |
+| Odoo 19 + OdooPLM + their PostgreSQL | Container, profile enterprise | About 2 GB | 420 MB steady (Odoo 270, PostgreSQL 150), threaded mode, Manufacturing and PLM installed |
+| ROS 2 + MoveIt, headless | Container, profile robot | About 1.5 GB | 160 MB steady, 260 MB peak, mock hardware, planning and executing |
+| Broker, TimescaleDB, simulators, gateway, services, control room | Containers, profile core | About 1.5 GB | 170 MB for the infrastructure (Grafana 125, TimescaleDB 37, Mosquitto 6); services not built yet, roughly 1 GB more expected |
+| Production agent and tool server | Container, profile ai | Under 0.5 GB; the model runs through the API | Not built yet |
+| Embedding model (`nomic-embed-text`) | Ollama on Windows, RTX 3050 | No system RAM; about 320 MB of GPU memory | 320 MB of GPU memory (WP-00) |
 
-These are estimates. WP-02 measures the real numbers with docker stats and records them in this table.
+The measured figures come from docker stats on 18 Nov 2026, with stand-in workloads for the profiles not built yet; the method and caveats are in `docs/notes/wp-02-memory.md`. Every profile fits at once with a wide margin, so the robot profile is the default (ADR-002). Measure again when the phase 2 services exist and before v1.0.
 
 | Profile | Contains | Needed by storylines |
 | --- | --- | --- |
@@ -502,13 +503,13 @@ Verify: CI is green on the empty test suite; make lint passes.
 
 Goal: the infrastructure runs, and its real memory use is known.
 
-- ☐ deploy/compose.yaml with the profiles core, enterprise, robot, robot-lite and ai
-- ☐ Mosquitto with a TCP listener on 1883 and a WebSocket listener on 9001; users from a password file
-- ☐ TimescaleDB with the pgvector extension; init scripts mounted from historian/migrations
-- ☐ Grafana with its TimescaleDB data source provisioned
-- ☐ Health checks on every service; `make up PROFILES=core` waits for healthy
-- ☐ Start the OdooPLM slim image and a ROS 2 Lyrical image once, only to measure; record docker stats figures in the runtime environment table
-- ☐ Write ADR-002: robot or robot-lite as the default, based on the measurements
+- ☑ deploy/compose.yaml with the profiles core, enterprise, robot, robot-lite and ai
+- ☑ Mosquitto with a TCP listener on 1883 and a WebSocket listener on 9001; users from a password file
+- ☑ TimescaleDB with the pgvector extension; init scripts mounted from historian/migrations
+- ☑ Grafana with its TimescaleDB data source provisioned
+- ☑ Health checks on every service; `make up PROFILES=core` waits for healthy
+- ☑ Start the OdooPLM slim image and a ROS 2 Lyrical image once, only to measure; record docker stats figures in the runtime environment table
+- ☑ Write ADR-002: robot or robot-lite as the default, based on the measurements
 
 Verify: all core services healthy; measured memory recorded in this document.
 
@@ -885,7 +886,7 @@ Decide these before Phase 0 ends:
 - ☐ Domain: the rubber-part line
 - ☐ Language model provider for the agent, and a monthly budget
 - ☑ GPU memory and the embedding model: RTX 3050 with 6 GB; `nomic-embed-text` through Ollama, about 320 MB of GPU memory
-- ☐ robot or robot-lite as the default, after the WP-02 measurements
+- ☑ robot or robot-lite as the default: robot (ADR-002, from the WP-02 measurements)
 - ☐ Weekly hours: under about 10, v1.0 moves to April
 - ☑ The project name: PULP
 

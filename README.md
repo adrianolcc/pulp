@@ -21,6 +21,7 @@ Requires uv, GNU make and Docker (see WP-00 in the spec).
 make setup          # install the Python workspace and the pre-commit hook
 cp .env.example .env
 make lint test      # what CI runs
+make up             # start the core profile and wait until it is healthy
 make help           # every command
 ```
 

@@ -1,0 +1,45 @@
+# One-off memory measurement for WP-02: the heavy profiles, enterprise and robot,
+# started once with stand-in workloads so their real memory use is known before
+# WP-10 and WP-13 build them for real. Not part of the PULP stack (its Compose
+# project is pulp-measure, so `make down` leaves it alone). docs/notes/wp-02-memory.md
+# has the method, the commands and the results.
+
+services:
+  # enterprise: Odoo 19 with OdooPLM (slim image: no CAD conversion stack) and its
+  # own PostgreSQL, with the Manufacturing app and PLM installed.
+  odoo-db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:?set ODOO_DB_PASSWORD in .env}
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U odoo"]
+      interval: 5s
+      retries: 20
+
+  odooplm:
+    image: mboscolo/odooplm:19.0-slim-build63
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+    environment:
+      HOST: odoo-db
+      USER: odoo
+      PASSWORD: ${ODOO_DB_PASSWORD}
+      ODOOPLM_DB: ${ODOO_DB:-pulp}
+      ODOOPLM_INIT_MODULES: mrp,plm
+      ODOOPLM_WITH_DEMO: "1"
+      ODOOPLM_DB_TIMEOUT: "120"
+    ports:
+      - "127.0.0.1:8069:8069"
+
+  # robot: ROS 2 Lyrical with MoveIt 2 and ros2_control mock hardware, headless.
+  ros:
+    image: moveit/moveit2:lyrical-release
+    command:
+      - bash
+      - -c
+      - source /opt/ros/lyrical/setup.bash && ros2 launch /measure/robot_headless.launch.py
+    volumes:
+      - ./robot_headless.launch.py:/measure/robot_headless.launch.py:ro

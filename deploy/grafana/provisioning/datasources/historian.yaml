@@ -1,0 +1,21 @@
+# Grafana reads this at startup. ${VARS} come from the container environment
+# (deploy/compose.yaml), so no password is written here.
+apiVersion: 1
+
+datasources:
+  - name: PULP historian
+    uid: pulp-historian
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: ${POSTGRES_HOST}:5432
+    # Read-only role created by historian/migrations/0002_grafana_reader.sh.
+    user: ${GRAFANA_DB_USER}
+    isDefault: true
+    editable: false
+    jsonData:
+      database: ${POSTGRES_DB}
+      sslmode: disable
+      postgresVersion: 1700
+      timescaledb: true
+    secureJsonData:
+      password: ${GRAFANA_DB_PASSWORD}
