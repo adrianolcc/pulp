@@ -8,7 +8,7 @@ COMPOSE := docker compose -f $(COMPOSE_FILE) --env-file .env
 PROFILES ?= core
 
 .DEFAULT_GOAL := help
-.PHONY: help setup sync lint fmt typecheck test up down logs
+.PHONY: help setup sync lint fmt typecheck test up down logs ps stats
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z%_-]+:.*## ' $(MAKEFILE_LIST) | \
@@ -46,6 +46,13 @@ down: _require-compose ## Stop the stack (all profiles)
 
 logs: _require-compose ## Follow logs: make logs [SERVICE=name]
 	COMPOSE_PROFILES='*' $(COMPOSE) logs -f $(SERVICE)
+
+ps: _require-compose ## Show the stack's containers and their health
+	COMPOSE_PROFILES='*' $(COMPOSE) ps
+
+stats: _require-compose ## Memory and CPU of the running stack, sampled once
+	@docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}' \
+		$$(COMPOSE_PROFILES='*' $(COMPOSE) ps -q)
 
 storyline-%: ## Run one storyline headless: make storyline-a (A to F)
 	@case "$*" in a|b|c|d|e|f) ;; *) echo "Unknown storyline '$*'; use a to f." >&2; exit 2;; esac
